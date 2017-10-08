@@ -7,3 +7,10 @@ This is the first iteration. It will autosave the brain every 5 minutes.
 
 The MegaHAL binary requires to be run on Linux, the modified source for MegaHAL is included in the SVETSE directory as is the binary.
 
+## Configuration
+
+Configuration is handled by three environment variables:
+`SLACKSE_TOKEN` is your Slack token
+`SLACKSE_CHANNEL` is your channel name
+`SLACKSE_SendMessageToChannelOnSave` is if the bot should write to the channel every time it saves it's brain (very verbose), defaults to `false`
+
