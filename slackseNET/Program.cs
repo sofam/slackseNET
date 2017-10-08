@@ -52,8 +52,31 @@ namespace slackseNET
       };
 
       // Connect the client
+      ManualResetEventSlim authReady = new ManualResetEventSlim(false);
       ManualResetEventSlim clientReady = new ManualResetEventSlim(false);
+      bool authOk = false;
       client = new SlackSocketClient(SlackseNETConfiguration.Token);
+      // Check if the token is valid
+      client.TestAuth((authTestResponse) => 
+      {
+        if(!authTestResponse.ok)
+        {
+          Console.WriteLine("Auth Error: {0}", authTestResponse.error);
+          authOk = authTestResponse.ok;
+          authReady.Set();
+        }
+        else
+        {
+          authOk = authTestResponse.ok;
+          authReady.Set();
+        }
+      });
+      authReady.Wait();
+      if(!authOk)
+      {
+        return;
+      }
+
       client.Connect((connected) =>
       {
         clientReady.Set();
