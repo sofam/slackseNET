@@ -14,3 +14,4 @@ Configuration is handled by three environment variables:
 `SLACKSE_CHANNEL` is your channel name
 `SLACKSE_SendMessageToChannelOnSave` is if the bot should write to the channel every time it saves it's brain (very verbose), defaults to `false`
 
+Requires the prerelease version of SlackAPI found here `dotnet add package SlackAPI --version 1.0.6 --source https://www.myget.org/F/slackapi/api/v3/index.json`
