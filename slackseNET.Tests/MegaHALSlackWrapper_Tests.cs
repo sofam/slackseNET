@@ -20,10 +20,10 @@ namespace slackseNET.Tests.MegaHALSlackWrapper_Tests
             using(var outputStream = new MemoryStream())
             using(var slackStreamWriter = new MegaHALSlackWrapper.SlackStreamWriter(outputStream))
             {
-                slackStreamWriter.WriteLine("<@29389KUK> This should only be this");
+                slackStreamWriter.WriteLine("<@29389KUK> This should only be this\nplus this without the newline in the middle");
                 slackStreamWriter.Flush();
                 var result = Encoding.UTF8.GetString(outputStream.ToArray());
-                Assert.Equal(result,"This should only be this\n");
+                Assert.Equal(result,"This should only be this plus this without the newline in the middle\n");
             }
         }
         [Fact]

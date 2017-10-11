@@ -46,8 +46,9 @@ namespace slackseNET
 
       public override void WriteLine(string value)
       {
-        var CleanResponse = Regex.Replace(value, "<.*?>", "").TrimStart();
-        base.WriteLine(CleanResponse);
+        var NickStrippedResponse = Regex.Replace(value, "<.*?>", "").TrimStart();
+        var NewlineStrippedResponse = Regex.Replace(NickStrippedResponse, "\n", " ");
+        base.WriteLine(NewlineStrippedResponse);
       }
     }
 
