@@ -57,9 +57,9 @@ namespace slackseNET
       bool authOk = false;
       client = new SlackSocketClient(SlackseNETConfiguration.Token);
       // Check if the token is valid
-      client.TestAuth((authTestResponse) => 
+      client.TestAuth((authTestResponse) =>
       {
-        if(!authTestResponse.ok)
+        if (!authTestResponse.ok)
         {
           Console.WriteLine("Auth Error: {0}", authTestResponse.error);
           authOk = authTestResponse.ok;
@@ -72,7 +72,7 @@ namespace slackseNET
         }
       });
       authReady.Wait();
-      if(!authOk)
+      if (!authOk)
       {
         return;
       }
@@ -108,8 +108,8 @@ namespace slackseNET
       // Register event handlers
       client.OnMessageReceived += (message) =>
       {
-              // If it's not the bot speaking, silently learn what's being said on the channel
-              if (message.user != null)
+        // If it's not the bot speaking, silently learn what's being said on the channel
+        if (message.user != null)
         {
           StandardInputMutex.WaitOne();
           MegaHALInput.WriteLine("#LEARN");
@@ -117,8 +117,8 @@ namespace slackseNET
           MegaHALInput.Flush();
           StandardInputMutex.ReleaseMutex();
         }
-              // If someone is talking to me specifically, learn what's being said and reply
-              if (message.text.Contains(client.MySelf.id))
+        // If someone is talking to me specifically, learn what's being said and reply
+        if (message.text.Contains(client.MySelf.id))
         {
           StandardInputMutex.WaitOne();
           MegaHALInput.WriteLine(message.text);
