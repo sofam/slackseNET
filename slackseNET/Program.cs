@@ -141,7 +141,7 @@ namespace slackseNET
       while (true)
       {
         var Response = await MegaHALOutput.ReadLineAsync();
-        client.SendMessage((mr) => Console.WriteLine("Got response {0}", Response), "C7D35EDR6", Response);
+        client.SendMessage((mr) => Console.WriteLine("Got response {0}", Response), SlackseNETConfiguration.ChannelId, Response);
         Console.WriteLine(Response);
       }
     }
@@ -156,7 +156,7 @@ namespace slackseNET
         MegaHALInput.Flush();
         if (SlackseNETConfiguration.SendMessageToChannelOnSave)
         {
-          client.SendMessage((mr) => Console.WriteLine("Saving brain..."), "C7D35EDR6", "Saving brain...");
+          client.SendMessage((mr) => Console.WriteLine("Saving brain..."), SlackseNETConfiguration.ChannelId, "Saving brain...");
         }
         StandardInputMutex.ReleaseMutex();
       }
