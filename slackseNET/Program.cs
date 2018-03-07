@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.IO;
 using SlackAPI;
 using System.Text;
@@ -26,9 +27,16 @@ namespace slackseNET
 
         static private SlackseConfiguration SlackseNETConfiguration = new SlackseConfiguration();
 
+        static CancellationTokenSource ReadOutputCancellationTokenSource;
+        static CancellationTokenSource SaveBrainCancellationTokenSource;
+
         static MegaHALSlackClient client;
         static void Main(string[] args)
         {
+            SaveBrainCancellationTokenSource = new CancellationTokenSource();
+            ReadOutputCancellationTokenSource = new CancellationTokenSource();
+
+
             var config = new ConfigurationBuilder().AddEnvironmentVariables("SLACKSE_").Build();
             config.Bind(SlackseNETConfiguration);
             // Exit if we don't have a token or a channel
@@ -42,11 +50,15 @@ namespace slackseNET
             Console.CancelKeyPress += (sender, e) =>
             {
                 Console.WriteLine("Shutting down MegaHAL...");
-                StandardInputMutex.WaitOne();
+                ReadOutputCancellationTokenSource.Cancel();
+                SaveBrainCancellationTokenSource.Cancel();
+                Console.WriteLine("Threads aborted");
+                Console.WriteLine("stdin mutex locked");
                 MegaHALInput.WriteLine("#SAVE");
                 MegaHALInput.Flush();
+                MegaHALInput.Close();
+                MegaHALOutput.Close();
                 MegaHAL.Close();
-                StandardInputMutex.ReleaseMutex();
             };
 
             client = new MegaHALSlackClient(SlackseNETConfiguration);
@@ -80,37 +92,63 @@ namespace slackseNET
             };
 
             // Start the client thread stuff, just read output from megahal and periodically save the brain
-            ReadOutput();
-            System.Threading.Tasks.Task.Run(() => SaveBrain());
-            
+
+
+            ReadOutput(ReadOutputCancellationTokenSource.Token);
+            System.Threading.Tasks.Task.Run(() => SaveBrain(SaveBrainCancellationTokenSource.Token));
+
+
             _quitEvent.WaitOne();
 
 
 
         }
-        static async void ReadOutput()
+        static async void ReadOutput(CancellationToken token)
         {
-            while (true)
+            try
             {
-                var Response = await MegaHALOutput.ReadLineAsync();
-                client.SendMessage(Response, SlackseNETConfiguration.ChannelId);
-                Console.WriteLine(Response);
+                while (true)
+                {
+                    token.ThrowIfCancellationRequested();
+                    var Response = await MegaHALOutput.ReadLineAsync();
+                    if(Response == null)
+                    {
+                        return;
+                    }
+                    client.SendMessage(Response, SlackseNETConfiguration.ChannelId);
+                    Console.WriteLine(Response);
+                }
+            }
+            catch (System.OperationCanceledException)
+            {
+                Console.WriteLine("ReadOutput thread aborted");
+                return;
             }
         }
 
-        private static void SaveBrain()
+        private static void SaveBrain(CancellationToken token)
         {
-            while (true)
+            try
             {
-                Thread.Sleep(300000);
-                StandardInputMutex.WaitOne();
-                MegaHALInput.WriteLine("#SAVE");
-                MegaHALInput.Flush();
-                if (SlackseNETConfiguration.SendMessageToChannelOnSave)
+                while (true)
                 {
-                    client.SendMessage("Saving brain...", SlackseNETConfiguration.ChannelId);
+                    token.WaitHandle.WaitOne(300000);
+                    token.ThrowIfCancellationRequested();
+                    StandardInputMutex.WaitOne();
+                    MegaHALInput.WriteLine("#SAVE");
+                    MegaHALInput.Flush();
+                    if (SlackseNETConfiguration.SendMessageToChannelOnSave)
+                    {
+                        client.SendMessage("Saving brain...", SlackseNETConfiguration.ChannelId);
+                    }
+                    StandardInputMutex.ReleaseMutex();
+                    
                 }
-                StandardInputMutex.ReleaseMutex();
+            }
+            catch (System.OperationCanceledException)
+            {
+                Console.WriteLine("SaveBrain thread aborted");
+                return;
             }
         }
     }
