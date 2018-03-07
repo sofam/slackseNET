@@ -1,0 +1,53 @@
+{
+   // Use IntelliSense to find out which attributes exist for C# debugging
+   // Use hover for the description of the existing attributes
+   // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+   "version": "0.2.0",
+   "configurations": [
+    {
+        "name": ".NET Core Docker Launch (console)",
+        "type": "coreclr",
+        "request": "launch",                    
+        "preLaunchTask": "buildForDebug",       
+        "program": "/app/out/slackseNET.dll",          
+        "cwd": "/app/out",
+        "sourceFileMap": {
+            "/app": "${workspaceRoot}/slackseNET"      
+        },                     
+        "env": {
+            "SLACKSE_TOKEN": "xoxb-326053738325-mhXyG3MgMXLrgab2EWZJS0fb",
+            "SLACKSE_CHANNEL": "bot-arena"
+        }, 
+        "pipeTransport": {
+            "pipeProgram": "docker",            
+            "pipeCwd": "${workspaceRoot}/slackseNET",
+            "pipeArgs": [
+                "exec", 
+                "-i docker.dotnet.debug_1" 
+            ],
+            "quoteArgs": false,
+            "debuggerPath": "/vsdbg/vsdbg"
+        }
+    },
+        {
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/slackseNET/bin/Debug/netcoreapp2.0/slackseNET.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/slackseNET",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}

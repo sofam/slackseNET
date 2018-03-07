@@ -1,0 +1,31 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/slackseNET/slackseNET.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "buildForDebug",
+            "command": "bash",
+            "type": "process",
+            "args": [
+                "-c",
+                "./slackseNET/scripts/dockerTask.sh buildForDebug"
+            ],
+            "presentation":{
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        }
+
+    ]
+}
