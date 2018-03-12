@@ -1,6 +1,6 @@
 language: csharp
 solution: slackseNET.sln
 mono: none
-dotnet: 2.0
+dotnet: 2.1.4
 script:
   - xbuild /p:Configuration=Release slackseNET.sln
