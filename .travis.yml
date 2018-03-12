@@ -1,0 +1,8 @@
+language: csharp
+solution: slackseNET.sln
+mono: none
+dotnet: 2.1.4
+script:
+  - dotnet restore
+  - dotnet build -c Release
+  - dotnet test slackseNET.Tests
