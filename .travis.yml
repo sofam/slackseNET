@@ -3,4 +3,5 @@ solution: slackseNET.sln
 mono: none
 dotnet: 2.1.4
 script:
-  - xbuild /p:Configuration=Release slackseNET.sln
+  - dotnet restore
+  - dotnet build -c Release
