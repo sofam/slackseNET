@@ -73,7 +73,7 @@ namespace slackseNET
             client.OnMessageReceived += (message) =>
             {
                 // If the message starts with a slack quote sign, just ignore it 
-                if (message.text.StartsWith('>'))
+                if (message.text.StartsWith("&gt;"))
                 {
                     return;
                 }
