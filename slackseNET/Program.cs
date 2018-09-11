@@ -72,6 +72,12 @@ namespace slackseNET
             // Register event handlers
             client.OnMessageReceived += (message) =>
             {
+                // If the message starts with a slack quote sign, just ignore it 
+                if (message.text.StartsWith("&gt;"))
+                {
+                    return;
+                }
+                
                 // If it's not the bot speaking, silently learn what's being said on the channel
                 if (message.user != null)
                 {
@@ -81,6 +87,7 @@ namespace slackseNET
                     MegaHALInput.Flush();
                     StandardInputMutex.ReleaseMutex();
                 }
+                
                 // If someone is talking to me specifically, learn what's being said and reply
                 if (message.text.Contains(client.ClientId))
                 {
