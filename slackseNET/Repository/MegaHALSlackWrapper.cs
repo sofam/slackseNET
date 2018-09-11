@@ -67,6 +67,10 @@ namespace slackseNET
       public override async Task<string> ReadLineAsync()
       {
         var UnformattedResponse = await base.ReadLineAsync();
+        if (UnformattedResponse == null)
+        {
+          return null;
+        }
         return UnformattedResponse.TrimStart(new char[] { '>', '-', ' ' });
       }
 
