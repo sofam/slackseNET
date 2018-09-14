@@ -4,14 +4,14 @@ using SlackAPI;
 
 namespace slackseNET
 {
-    public class MegaHALSlackClientAuthenticationException: Exception
+    public class MegaHALSlackClientAuthenticationException : Exception
     {
         public MegaHALSlackClientAuthenticationException()
         {
 
         }
 
-        public MegaHALSlackClientAuthenticationException(string message) 
+        public MegaHALSlackClientAuthenticationException(string message)
         : base(message)
         {
 
@@ -26,27 +26,28 @@ namespace slackseNET
     }
     public class MegaHALSlackClient
     {
-        private static SlackseConfiguration SlackseConfig; 
+        private static SlackseConfiguration SlackseConfig;
         private static SlackSocketClient SlackClient;
 
-        public string ClientId {
+        public string ClientId
+        {
             get
             {
                 return SlackClient.MySelf.id;
             }
         }
-        
-        private static int PongMissed = 0;
 
+        private static int PongMissed = 0;
+        private static CancellationTokenSource PongCancellationTokenSource;
         private static Mutex PongMutex = new Mutex();
         public MegaHALSlackClient(SlackseConfiguration configuration)
         {
             SlackseConfig = configuration;
             SlackClient = new SlackSocketClient(SlackseConfig.Token);
-            
+
         }
 
-        public void Connect() 
+        public void Connect()
         {
             Console.WriteLine("Starting connect");
             try
@@ -59,18 +60,21 @@ namespace slackseNET
             }
 
             ManualResetEventSlim clientReady = new ManualResetEventSlim(false);
-            SlackClient.Connect((connected) => {
+            SlackClient.Connect((connected) =>
+            {
                 clientReady.Set();
-            }, () => 
+            }, () =>
             {
                 Console.WriteLine("I am connected");
             });
 
             clientReady.Wait();
             PongMissed = 0;
-            System.Threading.Tasks.Task.Run(() => CheckAlive());
+            PongCancellationTokenSource = new CancellationTokenSource();
+            System.Threading.Tasks.Task.Run(() => CheckAlive(PongCancellationTokenSource.Token));
 
-            SlackClient.OnPongReceived += (pong) => {
+            SlackClient.OnPongReceived += (pong) =>
+            {
                 PongHandler(pong);
             };
         }
@@ -81,30 +85,39 @@ namespace slackseNET
             PongMissed = 0;
             PongMutex.ReleaseMutex();
         }
-        
-        private void CheckAlive()
+
+        private void CheckAlive(CancellationToken token)
         {
-            while (true)
+            try
             {
-                if (PongMissed > 1)
+                while (true)
                 {
-                    Console.WriteLine("No pong received for 30000 ms, {0}", PongMissed);
+                    if (PongMissed > 1)
+                    {
+                        Console.WriteLine("No pong received for 30000 ms, {0}", PongMissed);
+                    }
+                    if (PongMissed > 5)
+                    {
+                        Console.WriteLine("Missed {0} pongs, retrying connection", PongMissed);
+                        this.Reconnect();
+                    }
+                    Thread.Sleep(30000);
+                    SlackClient.SendPing();
+                    PongMutex.WaitOne();
+                    PongMissed += 1;
+                    PongMutex.ReleaseMutex();
                 }
-                if (PongMissed > 5)
-                {
-                    Console.WriteLine("Missed {0} pongs, retrying connection", PongMissed);
-                    this.Reconnect();
-                }
-                Thread.Sleep(30000);
-                SlackClient.SendPing();
-                PongMutex.WaitOne();
-                PongMissed += 1;
-                PongMutex.ReleaseMutex();
+            }
+            catch (System.OperationCanceledException)
+            {
+                Console.WriteLine("Cancelled the pong thread");
+                return;
             }
         }
 
         public void Close()
         {
+            PongCancellationTokenSource.Cancel();
             SlackClient.CloseSocket();
         }
 
@@ -114,19 +127,20 @@ namespace slackseNET
             SlackClient = null;
             SlackClient = new SlackSocketClient(SlackseConfig.Token);
             SlackClient.OnMessageReceived += WrapperAction;
+            PongCancellationTokenSource.Cancel();
             this.Connect();
         }
 
         public string GetChannelId(string name)
         {
-            SlackClient.GetChannelList((cl) => {});
+            SlackClient.GetChannelList((cl) => { });
             var c = SlackClient.Channels.Find((channel) => (channel.name.Equals(name)));
             return c.id;
         }
 
         public void SendMessage(string message, string channelId)
         {
-            SlackClient.SendMessage((mr) => {}, channelId, message);
+            SlackClient.SendMessage((mr) => { }, channelId, message);
         }
 
         private Action<SlackAPI.WebSocketMessages.NewMessage> WrapperAction;
@@ -148,8 +162,9 @@ namespace slackseNET
         private static void TestAuth()
         {
             ManualResetEventSlim authReady = new ManualResetEventSlim(false);
-            SlackClient.TestAuth((authTestResponse) => {
-                if(authTestResponse.ok)
+            SlackClient.TestAuth((authTestResponse) =>
+            {
+                if (authTestResponse.ok)
                 {
                     authReady.Set();
                 }

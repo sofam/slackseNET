@@ -59,6 +59,7 @@ namespace slackseNET
                 MegaHALInput.Close();
                 MegaHALOutput.Close();
                 MegaHAL.Close();
+                client.Close();
             };
 
             client = new MegaHALSlackClient(SlackseNETConfiguration);
