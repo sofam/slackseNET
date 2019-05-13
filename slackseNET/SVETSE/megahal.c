@@ -31,7 +31,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#if defined(__MACH__)
+#include <stdlib.h>
+#else 
 #include <malloc.h>
+#endif
 #include <string.h>
 #include <signal.h>
 #include <math.h>

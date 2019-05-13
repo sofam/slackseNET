@@ -106,6 +106,7 @@ namespace slackseNET
                     PongMutex.WaitOne();
                     PongMissed += 1;
                     PongMutex.ReleaseMutex();
+                    return;
                 }
             }
             catch (System.OperationCanceledException)
