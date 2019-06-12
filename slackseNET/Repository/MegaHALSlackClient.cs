@@ -100,13 +100,13 @@ namespace slackseNET
                     {
                         Console.WriteLine("Missed {0} pongs, retrying connection", PongMissed);
                         this.Reconnect();
+                        return;
                     }
                     Thread.Sleep(30000);
                     SlackClient.SendPing();
                     PongMutex.WaitOne();
                     PongMissed += 1;
                     PongMutex.ReleaseMutex();
-                    return;
                 }
             }
             catch (System.OperationCanceledException)
